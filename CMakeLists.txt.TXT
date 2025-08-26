@@ -1,0 +1,42 @@
+cmake_minimum_required(VERSION 3.24)
+
+# Project
+project(ide
+    VERSION 0.1.0
+    DESCRIPTION "Lean C++/Qt IDE (MVP) with PTY, ripgrep integration, and libgit2"
+    LANGUAGES CXX)
+
+# Options
+option(IDE_ENABLE_SANITIZERS "Enable Address/Undefined sanitizers (non-MSVC)" ON)
+option(IDE_ENABLE_LTO "Enable Link-Time Optimization" ON)
+
+# Set C++ standard and common policies
+set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
+
+# Qt setup
+find_package(Qt6 6.4 REQUIRED COMPONENTS Core Gui Widgets)
+
+# Warnings and sanitizer config
+include(cmake/StandardSettings.cmake)
+
+# Dependencies: libgit2 (FetchContent)
+include(FetchContent)
+set(BUILD_SHARED_LIBS OFF)
+
+FetchContent_Declare(libgit2
+    GIT_REPOSITORY https://github.com/libgit2/libgit2.git
+    GIT_TAG v1.8.1)
+set(USE_HTTPS OFF CACHE BOOL "" FORCE)
+set(USE_SSH OFF CACHE BOOL "" FORCE)
+set(THREADSAFE ON CACHE BOOL "" FORCE)
+set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(libgit2)
+
+add_subdirectory(src)
+
+install(TARGETS ide
+    RUNTIME DESTINATION bin
+    BUNDLE DESTINATION .
+)
