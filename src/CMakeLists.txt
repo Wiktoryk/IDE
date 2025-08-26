@@ -1,0 +1,7 @@
+add_subdirectory(util)
+add_subdirectory(buffer)
+add_subdirectory(pty)
+add_subdirectory(search)
+add_subdirectory(git)
+add_subdirectory(ui)
+add_subdirectory(app)
