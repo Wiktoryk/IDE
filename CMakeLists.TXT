@@ -3,11 +3,11 @@ cmake_minimum_required(VERSION 3.24)
 # Project
 project(ide
     VERSION 0.1.0
-    DESCRIPTION "Lean C++/Qt IDE (MVP) with PTY, ripgrep integration, and libgit2"
+    DESCRIPTION "C++/Qt IDE with PTY, ripgrep integration, and libgit2"
     LANGUAGES CXX)
 
 # Options
-option(IDE_ENABLE_SANITIZERS "Enable Address/Undefined sanitizers (non-MSVC)" ON)
+#option(IDE_ENABLE_SANITIZERS "Enable Address/Undefined sanitizers (non-MSVC)" ON)
 option(IDE_ENABLE_LTO "Enable Link-Time Optimization" ON)
 
 # Set C++ standard and common policies
@@ -33,6 +33,11 @@ set(USE_SSH OFF CACHE BOOL "" FORCE)
 set(THREADSAFE ON CACHE BOOL "" FORCE)
 set(BUILD_TESTS OFF CACHE BOOL "" FORCE)
 FetchContent_MakeAvailable(libgit2)
+
+FetchContent_GetProperties(libgit2)
+if (libgit2_POPULATED)
+  set(LIBGIT2_INCLUDE_DIR "${libgit2_SOURCE_DIR}/include")
+endif()
 
 add_subdirectory(src)
 

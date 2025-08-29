@@ -6,10 +6,12 @@ else()
 endif()
 
 # Sanitizers (clang/gcc)
-if (IDE_ENABLE_SANITIZERS AND NOT MSVC)
-    add_link_options(-fsanitize=address,undefined)
-    add_compile_options(-fsanitize=address,undefined)
-endif()
+#function(ide_enable_sanitizers tgt)
+#  if (IDE_ENABLE_SANITIZERS AND NOT MSVC)
+#    target_compile_options(${tgt} PRIVATE -fsanitize=address,undefined)
+#    target_link_options(${tgt} PRIVATE -fsanitize=address,undefined)
+#  endif()
+#endfunction()
 
 # Link Time Optimization
 include(CheckIPOSupported)
