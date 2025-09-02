@@ -1,11 +1,169 @@
 #include "mainwindow.h"
-#include <QTextEdit>
+#include "editorwidget.h"
+
+#include <QMenuBar>
 #include <QStatusBar>
+#include <QFileDialog>
+#include <QMessageBox>
+#include <QCloseEvent>
+#include <QAction>
+#include <QMenu>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
-    auto* editor = new QTextEdit;
-    setCentralWidget(editor);
+    m_editor = new EditorWidget(this);
+    setCentralWidget(m_editor);
+
+    auto fileMenu = menuBar()->addMenu("&File");
+    auto actNew  = fileMenu->addAction("&New", this, &MainWindow::newFile, QKeySequence::New);
+    auto actOpen = fileMenu->addAction("&Open…", this, &MainWindow::openFile, QKeySequence::Open);
+    fileMenu->addSeparator();
+    auto actSave = fileMenu->addAction("&Save", this, &MainWindow::saveFile, QKeySequence::Save);
+    auto actSaveAs = fileMenu->addAction("Save &As…", this, &MainWindow::saveFileAs, QKeySequence::SaveAs);
+
+    m_recentMenu = fileMenu->addMenu("Open &Recent");
+    rebuildRecentMenu();
+    fileMenu->addSeparator();
+    fileMenu->addAction("&Exit", this, &QWidget::close, QKeySequence::Quit);
+
     statusBar()->showMessage("Ready");
-    resize(900, 600);
+    resize(1000, 700);
     setWindowTitle("IDE");
+
+    connect(m_editor, &EditorWidget::cursorPosChanged, this, &MainWindow::updateStatusLineCol);
+    connect(m_editor, &EditorWidget::dirtyChanged, this, &MainWindow::updateWindowModified);
+}
+
+bool MainWindow::maybeSave() {
+    if (!isWindowModified()) {
+	return true;
+    }
+    auto decision = QMessageBox::question(this, "Unsaved changes",
+        "Save changes before closing?",
+        QMessageBox::Yes|QMessageBox::No|QMessageBox::Cancel,
+        QMessageBox::Yes);
+    if (decision == QMessageBox::Cancel) {
+	return false;
+    }
+    if (decision == QMessageBox::Yes) {
+        if (m_editor->filePath().isEmpty()) {
+            return doSaveAs(nullptr);
+	}
+        QString error;
+        if (!m_editor->saveToFile(m_editor->filePath(), &error)) {
+            QMessageBox::warning(this, "Save failed", error);
+            return false;
+        }
+    }
+    return true;
+}
+
+void MainWindow::closeEvent(QCloseEvent* ev) {
+    if (maybeSave()) {
+	ev->accept();
+    }
+    else {
+	ev->ignore();
+    }
+}
+
+void MainWindow::addToRecent(const QString& path) {
+    m_recent.removeAll(path);
+    m_recent.prepend(path);
+    while (m_recent.size() > 10) {
+	m_recent.removeLast();
+    }
+    rebuildRecentMenu();
+}
+
+void MainWindow::rebuildRecentMenu() {
+    m_recentMenu->clear();
+    for (const QString& path : m_recent) {
+        QAction* action = m_recentMenu->addAction(path, this, &MainWindow::openRecent);
+        action->setData(path);
+    }
+    if (m_recent.isEmpty()) {
+        m_recentMenu->addAction("(empty)")->setEnabled(false);
+    }
+}
+
+void MainWindow::updateStatusLineCol(int line, int col) {
+    statusBar()->showMessage(QString("Ln %1, Col %2").arg(line).arg(col), 2000);
+}
+
+void MainWindow::updateWindowModified(bool dirty) {
+    setWindowModified(dirty);
+}
+
+void MainWindow::newFile() {
+    if (!maybeSave()) {
+	return;
+    }
+    m_editor->setPlainText({});
+    m_editor->setFilePath({});
+}
+
+void MainWindow::openFile() {
+    if (!maybeSave()) {
+	return;
+    }
+    QString path = QFileDialog::getOpenFileName(this, "Open file");
+    if (path.isEmpty()) {
+	return;
+    }
+    QString error;
+    if (!m_editor->loadFromFile(path, &error)) {
+        QMessageBox::warning(this, "Failed to open file", error);
+        return;
+    }
+    addToRecent(path);
+}
+
+void MainWindow::saveFile() {
+    if (m_editor->filePath().isEmpty()) {
+        saveFileAs();
+        return;
+    }
+    QString error;
+    if (!m_editor->saveToFile(m_editor->filePath(), &error)) {
+        QMessageBox::warning(this, "Save failed", error);
+    }
+}
+
+bool MainWindow::doSaveAs(QString* outPath) {
+    QString path = QFileDialog::getSaveFileName(this, "Save As");
+    if (path.isEmpty()) {
+	return false;
+    }
+    QString error;
+    if (!m_editor->saveToFile(path, &error)) {
+        QMessageBox::warning(this, "Save failed", error);
+        return false;
+    }
+    addToRecent(path);
+    if (outPath) {
+	*outPath = path;
+    }
+    return true;
+}
+
+void MainWindow::saveFileAs() {
+    doSaveAs(nullptr);
+}
+
+void MainWindow::openRecent() {
+    auto action = qobject_cast<QAction*>(sender());
+    if (!action) {
+	return;
+    }
+    if (!maybeSave()) {
+	return;
+    }
+    QString path = action->data().toString();
+    if (path.isEmpty()) {
+	return;
+    }
+    QString error;
+    if (!m_editor->loadFromFile(path, &error)) {
+        QMessageBox::warning(this, "Failed to open file", error);
+    }
 }
