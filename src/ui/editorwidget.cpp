@@ -13,10 +13,10 @@ EditorWidget::EditorWidget(QWidget* parent) : QPlainTextEdit(parent) {
 void EditorWidget::updateWindowTitle() {
     QString name = m_path.isEmpty() ? QStringLiteral("Untitled") : QFileInfo(m_path).fileName();
     if (m_dirty) {
-	name.append('*');
+		name.append('*');
     }
     if (auto w = window()) {
-	w->setWindowTitle(name);
+		w->setWindowTitle(name);
     }
 }
 
@@ -24,8 +24,8 @@ bool EditorWidget::loadFromFile(const QString& path, QString* error) {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
         if (error) {
-	    *error = file.errorString();
-	}
+	    	*error = file.errorString();
+		}
         return false;
     }
     QTextStream in(&file);
@@ -41,8 +41,8 @@ bool EditorWidget::saveToFile(const QString& path, QString* error) {
     QFile file(path);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         if (error) {
-	    *error = file.errorString();
-	}
+	    	*error = file.errorString();
+		}
         return false;
     }
     QTextStream out(&file);
@@ -51,8 +51,8 @@ bool EditorWidget::saveToFile(const QString& path, QString* error) {
     out.flush();
     if (file.error() != QFile::NoError) {
         if (error) {
-	    *error = file.errorString();
-	}
+	    	*error = file.errorString();
+		}
         return false;
     }
     document()->setModified(false);
