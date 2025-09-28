@@ -1,5 +1,7 @@
 #pragma once
 #include <QMainWindow>
+#include <QDockWidget>
+#include <QPlainTextEdit>
 class EditorWidget;
 
 class MainWindow : public QMainWindow {
@@ -15,6 +17,9 @@ private:
     QMenu* m_recentMenu = nullptr;
 
 	void runBuild(const QString& buildType);
+
+	QDockWidget* m_buildDock = nullptr;
+    QPlainTextEdit*   m_buildOutput = nullptr;
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);

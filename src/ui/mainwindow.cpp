@@ -16,22 +16,28 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     setCentralWidget(m_editor);
 
     auto fileMenu = menuBar()->addMenu("&File");
-    auto actNew  = fileMenu->addAction("&New", this, &MainWindow::newFile, QKeySequence::New);
-    auto actOpen = fileMenu->addAction("&Open…", this, &MainWindow::openFile, QKeySequence::Open);
+    fileMenu->addAction("&New", QKeySequence::New, this, &MainWindow::newFile);
+    fileMenu->addAction("&Open…", QKeySequence::Open, this, &MainWindow::openFile);
     fileMenu->addSeparator();
-    auto actSave = fileMenu->addAction("&Save", this, &MainWindow::saveFile, QKeySequence::Save);
-    auto actSaveAs = fileMenu->addAction("Save &As…", this, &MainWindow::saveFileAs, QKeySequence::SaveAs);
+    fileMenu->addAction("&Save", QKeySequence::Save, this, &MainWindow::saveFile);
+    fileMenu->addAction("Save &As…", QKeySequence::SaveAs, this, &MainWindow::saveFileAs);
 
     m_recentMenu = fileMenu->addMenu("Open &Recent");
     rebuildRecentMenu();
     fileMenu->addSeparator();
-    fileMenu->addAction("&Exit", this, &QWidget::close, QKeySequence::Quit);
+    fileMenu->addAction("&Exit", QKeySequence::Quit, this, &QWidget::close);
 
 	auto buildBar = addToolBar("Build");
 	buildBar->addAction("Build (Default)", this, &MainWindow::buildDefault);
 	buildBar->addAction("Build Debug", this, &MainWindow::buildDebug);
 	buildBar->addAction("Build Release", this, &MainWindow::buildRelease);
 	buildBar->addAction("Build RelWithDebInfo", this, &MainWindow::buildRelWithDebInfo);
+
+	m_buildDock = new QDockWidget("Build Output", this);
+	m_buildOutput = new QPlainTextEdit(m_buildDock);
+	m_buildOutput->setReadOnly(true);
+	m_buildDock->setWidget(m_buildOutput);
+	addDockWidget(Qt::BottomDockWidgetArea, m_buildDock);
 
     statusBar()->showMessage("Ready");
     resize(1000, 700);
@@ -200,25 +206,31 @@ void MainWindow::runBuild(const QString& buildType) {
     if (!buildType.isEmpty()) {
         args << "--config" << buildType;
     }
+	m_buildOutput->clear();
+    m_buildOutput->appendPlainText(QString("Running: %1 %2\n")
+                          .arg(program, args.join(' ')));
 
     auto *proc = new QProcess(this);
+	proc->setWorkingDirectory(buildDir);
     proc->setProcessChannelMode(QProcess::MergedChannels);
-    connect(proc, &QProcess::readyReadStandardOutput, this, [=] {
-        QByteArray out = proc->readAllStandardOutput();
-        statusBar()->showMessage(QString::fromLocal8Bit(out).trimmed());
+    connect(proc, &QProcess::readyReadStandardOutput, this, [this, proc] {
+		m_buildOutput->moveCursor(QTextCursor::End);
+        m_buildOutput->insertPlainText(QString::fromLocal8Bit(proc->readAllStandardOutput()));
+        m_buildOutput->moveCursor(QTextCursor::End);
     });
     connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
-            this, [=](int code, QProcess::ExitStatus status) {
-        if (status == QProcess::NormalExit && code == 0)
-            QMessageBox::information(this, "Build", "Build finished successfully");
-        else
-            QMessageBox::warning(this, "Build", "Build failed");
-        proc->deleteLater();
+            this, [this, proc](int code, QProcess::ExitStatus status) {
+        if (status == QProcess::NormalExit && code == 0) {
+            m_buildOutput->appendPlainText("\nBuild finished successfully.");
+        } else {
+            m_buildOutput->appendPlainText("\nBuild failed");
+        }
+		proc->deleteLater();
     });
 
     proc->start(program, args);
     if (!proc->waitForStarted()) {
-        QMessageBox::warning(this, "Error", "Could not start cmake");
+        m_buildOutput->appendPlainText("Could not start cmake \n");
         proc->deleteLater();
     }
 }
