@@ -14,6 +14,8 @@ private:
     QStringList m_recent;
     QMenu* m_recentMenu = nullptr;
 
+	void runBuild(const QString& buildType);
+
 public:
     explicit MainWindow(QWidget* parent = nullptr);
 
@@ -29,4 +31,9 @@ private slots:
 
     void updateStatusLineCol(int line,int col);
     void updateWindowModified(bool dirty);
+
+	void buildDefault();
+    void buildDebug();
+    void buildRelease();
+    void buildRelWithDebInfo();
 };

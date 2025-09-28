@@ -8,6 +8,8 @@
 #include <QCloseEvent>
 #include <QAction>
 #include <QMenu>
+#include <QProcess>
+#include <QToolBar>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     m_editor = new EditorWidget(this);
@@ -24,6 +26,12 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     rebuildRecentMenu();
     fileMenu->addSeparator();
     fileMenu->addAction("&Exit", this, &QWidget::close, QKeySequence::Quit);
+
+	auto buildBar = addToolBar("Build");
+	buildBar->addAction("Build (Default)", this, &MainWindow::buildDefault);
+	buildBar->addAction("Build Debug", this, &MainWindow::buildDebug);
+	buildBar->addAction("Build Release", this, &MainWindow::buildRelease);
+	buildBar->addAction("Build RelWithDebInfo", this, &MainWindow::buildRelWithDebInfo);
 
     statusBar()->showMessage("Ready");
     resize(1000, 700);
@@ -165,5 +173,52 @@ void MainWindow::openRecent() {
     QString error;
     if (!m_editor->loadFromFile(path, &error)) {
         QMessageBox::warning(this, "Failed to open file", error);
+    }
+}
+
+void MainWindow::buildDefault() {
+	runBuild(QString());
+}
+
+void MainWindow::buildDebug() {
+	runBuild("Debug");
+}
+
+void MainWindow::buildRelease() {
+	runBuild("Release");
+}
+
+void MainWindow::buildRelWithDebInfo() {
+	runBuild("RelWithDebInfo");
+}
+
+void MainWindow::runBuild(const QString& buildType) {
+    QString buildDir = QFileDialog::getExistingDirectory(this, "Select Build Directory");
+    QString program = "cmake";
+    QStringList args = {"--build", buildDir};
+
+    if (!buildType.isEmpty()) {
+        args << "--config" << buildType;
+    }
+
+    auto *proc = new QProcess(this);
+    proc->setProcessChannelMode(QProcess::MergedChannels);
+    connect(proc, &QProcess::readyReadStandardOutput, this, [=] {
+        QByteArray out = proc->readAllStandardOutput();
+        statusBar()->showMessage(QString::fromLocal8Bit(out).trimmed());
+    });
+    connect(proc, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished),
+            this, [=](int code, QProcess::ExitStatus status) {
+        if (status == QProcess::NormalExit && code == 0)
+            QMessageBox::information(this, "Build", "Build finished successfully");
+        else
+            QMessageBox::warning(this, "Build", "Build failed");
+        proc->deleteLater();
+    });
+
+    proc->start(program, args);
+    if (!proc->waitForStarted()) {
+        QMessageBox::warning(this, "Error", "Could not start cmake");
+        proc->deleteLater();
     }
 }
