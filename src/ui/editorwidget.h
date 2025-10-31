@@ -1,13 +1,22 @@
 #pragma once
 #include <QPlainTextEdit>
+#include <QFileSystemWatcher>
+#include <QTimer>
 
 class EditorWidget : public QPlainTextEdit {
     Q_OBJECT
 private:
     void updateWindowTitle();
+	void startWatching(const QString& path);
+	void stopWatching();
+    void reloadIfExternalChange();
 
     QString m_path;
     bool m_dirty = false;
+	QFileSystemWatcher* m_watcher = nullptr;
+	bool m_saving = false;
+    bool m_reloading = false;
+    QTimer* m_watchReset = nullptr;
 
 public:
     explicit EditorWidget(QWidget* parent=nullptr);
@@ -27,4 +36,6 @@ protected:
 private slots:
     void onCursorChanged();
     void onDocChanged();
+	void onFileChanged(const QString& path);
+	void delayedWatchReset();
 };
