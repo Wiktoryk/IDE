@@ -156,7 +156,7 @@ void GapBuffer::rebuildLineIndex() {
     const qsizetype N = size();
     auto addChunk = [this](qsizetype p0, qsizetype p1) {
         for (qsizetype p = p0; p < p1; ++p) {
-            if (isNewline(m_buf[p])) {
+            if (isNewLine(m_buf[p])) {
                 qsizetype gapOff = (p < m_gapBegin) ? 0 : (m_gapEnd - m_gapBegin);
                 m_lines.push_back(p - gapOff + 1);
             }
@@ -183,7 +183,7 @@ void GapBuffer::updateLinesForInsert(qsizetype at, QStringView stringview) {
     }
 
     for (qsizetype i = 0; i < stringview.size(); ++i) {
-        if (isNewline(stringview[i])) {
+        if (isNewLine(stringview[i])) {
             m_lines.insert(m_lines.begin() + lineIdx + 1, at + i + 1);
             ++lineIdx;
         }

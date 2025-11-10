@@ -10,7 +10,7 @@ public:
 
 	void clear() override;
 	qsizetype size() const override;
-	void insert(qsizetype pos, QStringview stringview) override;
+	void insert(qsizetype pos, QStringView stringview) override;
 	void erase(qsizetype pos, qsizetype len) override;
 	QString slice(qsizetype pos, qsizetype len) const override;
 	QString toString() const override;
