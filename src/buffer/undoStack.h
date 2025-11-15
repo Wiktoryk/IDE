@@ -29,5 +29,5 @@ private:
 	std::vector<Edit> m_done;
 	std::vector<Edit> m_redo;
 	bool m_coalesce = true;
-	std::chrono:steady_clock::time_point m_lastTime{};
+	std::chrono::steady_clock::time_point m_lastTime{};
 };

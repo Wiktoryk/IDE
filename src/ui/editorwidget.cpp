@@ -40,6 +40,8 @@ bool EditorWidget::loadFromFile(const QString& path, QString* error) {
     QTextStream in(&file);
     in.setEncoding(QStringConverter::Utf8);
     setPlainText(in.readAll());
+	m_model.setText(toPlainText());
+	m_undo.clear();
     document()->setModified(false);
     m_dirty = false;
     setFilePath(path);
@@ -77,7 +79,51 @@ bool EditorWidget::saveToFile(const QString& path, QString* error) {
 }
 
 void EditorWidget::keyPressEvent(QKeyEvent* e) {
-    QPlainTextEdit::keyPressEvent(e);
+	if (e->matches(QKeySequence::Undo)) {
+		doUndo();
+		return;
+	}
+    if (e->matches(QKeySequence::Redo)) {
+		doRedo();
+		return;
+	}
+	QTextCursor cursor = textCursor();
+    const qsizetype pos = cursor.position();
+    const qsizetype selectionLen = std::abs(cursor.selectionEnd() - cursor.selectionStart());
+    const qsizetype selectionStart = std::min(cursor.selectionStart(), cursor.selectionEnd());
+	const QString text = e->text();
+    const bool printable = !text.isEmpty() && !text.at(0).isNull() && text.at(0).isPrint();
+
+    if (printable || e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter || e->key() == Qt::Key_Tab) {
+        QString ins = text;
+        if (e->key() == Qt::Key_Return || e->key() == Qt::Key_Enter) ins = "\n";
+        if (e->key() == Qt::Key_Tab) ins = "    ";
+        if (selectionLen > 0) {
+            applyEraseAt(selectionStart, selectionLen);
+            applyInsertAt(selectionStart, ins);
+        } else {
+            applyInsertAt(pos, ins);
+        }
+        return;
+    }
+	if (e->key() == Qt::Key_Backspace) {
+        if (selectionLen > 0) {
+            applyEraseAt(selectionStart, selectionLen);
+        } else if (pos > 0) {
+            applyEraseAt(pos - 1, 1);
+        }
+        return;
+    }
+	if (e->key() == Qt::Key_Delete) {
+        if (selectionLen > 0) {
+            applyEraseAt(selectionStart, selectionLen);
+        } else {
+            if (pos < m_model.size())
+                applyEraseAt(pos, 1);
+        }
+        return;
+    }
+	QPlainTextEdit::keyPressEvent(e);
 }
 
 void EditorWidget::onCursorChanged() {
@@ -154,4 +200,47 @@ void EditorWidget::delayedWatchReset()
     if (!m_path.isEmpty()) {
         startWatching(m_path);
 	}
+}
+
+void EditorWidget::syncFromModel(qsizetype newCursorPos) {
+	const QString all = m_model.toString();
+	const bool blocked = blockSignals(true);
+	setPlainText(all);
+	blockSignals(blocked);
+
+	QTextCursor cursor = textCursor();
+	cursor.setPosition(static_cast<int>(newCursorPos));
+	setTextCursor(cursor);
+	ensureCursorVisible();
+}
+
+void EditorWidget::applyInsertAt(qsizetype pos, const QString& text) {
+	if (text.isEmpty()) return;
+	m_model.insert(pos, text);
+	Edit edit{Edit::Insert, pos, text, pos + text.size()};
+	m_undo.push(edit);
+	syncFromModel(edit.cursorAfter);
+	document()->setModified(true);
+}
+
+void EditorWidget::applyEraseAt(qsizetype pos, qsizetype len) {
+	if (len <= 0) return;
+	const QString removed = m_model.slice(pos, len);
+	m_model.erase(pos, len);
+	Edit edit{Edit::Erase, pos, removed, pos};
+	m_undo.push(edit);
+	syncFromModel(edit.cursorAfter);
+	document()->setModified(true);
+}
+
+void EditorWidget::doUndo() {
+	if (!m_undo.canUndo()) return;
+	qsizetype caret = m_undo.undo(m_model);
+	syncFromModel(caret);
+}
+
+void EditorWidget::doRedo() {
+	if (!m_undo.canRedo()) return;
+	qsizetype caret = m_undo.redo(m_model);
+	syncFromModel(caret);
 }

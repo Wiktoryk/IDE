@@ -27,6 +27,10 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     fileMenu->addSeparator();
     fileMenu->addAction("&Exit", QKeySequence::Quit, this, &QWidget::close);
 
+	auto editMenu = menuBar()->addMenu("&Edit");
+	editMenu->addAction("&Undo",  m_editor, &EditorWidget::doUndo,  QKeySequence::Undo);
+	editMenu->addAction("&Redo",  m_editor, &EditorWidget::doRedo,  QKeySequence::Redo);
+
 	auto buildBar = addToolBar("Build");
 	buildBar->addAction("Build (Default)", this, &MainWindow::buildDefault);
 	buildBar->addAction("Build Debug", this, &MainWindow::buildDebug);

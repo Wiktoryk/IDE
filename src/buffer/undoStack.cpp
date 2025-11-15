@@ -38,7 +38,7 @@ bool UndoStack::tryCoalesce(const Edit& edit) {
 
 void UndoStack::push(const Edit& edit) {
 	if (!tryCoalesce(edit)) {
-		m_done.push_back(edit)l
+		m_done.push_back(edit);
 	}
 	m_redo.clear();
 }
@@ -83,5 +83,5 @@ qsizetype UndoStack::redo(ITextBuffer& buf) {
     m_redo.pop_back();
     apply(buf, edit);
     m_done.push_back(edit);
-    return e.cursorAfter;
+    return edit.cursorAfter;
 }

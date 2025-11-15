@@ -2,6 +2,8 @@
 #include <QPlainTextEdit>
 #include <QFileSystemWatcher>
 #include <QTimer>
+#include "../buffer/gapBuffer.h"
+#include "../buffer/undoStack.h"
 
 class EditorWidget : public QPlainTextEdit {
     Q_OBJECT
@@ -10,6 +12,9 @@ private:
 	void startWatching(const QString& path);
 	void stopWatching();
     void reloadIfExternalChange();
+	void applyInsertAt(qsizetype pos, const QString& text);
+	void applyEraseAt(qsizetype pos, qsizetype len);
+	void syncFromModel(qsizetype newCursorPos);
 
     QString m_path;
     bool m_dirty = false;
@@ -17,6 +22,8 @@ private:
 	bool m_saving = false;
     bool m_reloading = false;
     QTimer* m_watchReset = nullptr;
+	GapBuffer m_model;
+	UndoStack m_undo;
 
 public:
     explicit EditorWidget(QWidget* parent=nullptr);
@@ -25,6 +32,8 @@ public:
     bool saveToFile(const QString& path, QString* error=nullptr);
     QString filePath() const { return m_path; }
     void setFilePath(const QString& p) { m_path = p; updateWindowTitle(); }
+	void doUndo();
+	void doRedo();
 
 signals:
     void cursorPosChanged(int line, int col);
