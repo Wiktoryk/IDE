@@ -2,6 +2,7 @@
 #include <QString>
 #include <QStringView>
 #include <vector>
+#include "textSnapshot.h"
 
 class ITextBuffer {
 public:
@@ -17,4 +18,8 @@ public:
 	virtual qsizetype lineCount() const = 0;
 	virtual qsizetype lineStart(qsizetype line) const = 0;
 	virtual qsizetype positionFromLineCol(qsizetype line, qsizetype col) const = 0;
+
+	virtual TextSnapshot snapshot() const = 0;
+	virtual void beginEdit() {}
+	virtual void endEdit() {}
 };

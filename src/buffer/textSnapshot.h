@@ -11,7 +11,7 @@ public:
         if (!m_text.isEmpty() && m_lineStarts.back() > m_text.size()) m_lineStarts.back() = m_text.size();
     }
     const QString& text() const { return m_text; }
-    qsizetype size() const ( return m_text.size(); }
+    qsizetype size() const { return m_text.size(); }
     qsizetype version() const { return m_version; }
     qsizetype lineCount() const { return static_cast<qsizetype>(m_lineStarts.size()); }
     qsizetype lineStart(qsizetype line) const {

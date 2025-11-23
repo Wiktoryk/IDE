@@ -19,6 +19,8 @@ public:
 	qsizetype lineStart(qsizetype line) const override;
 	qsizetype positionFromLineCol(qsizetype line, qsizetype col) const override;
 
+	TextSnapshot snapshot() const override;
+
 	void setText(QStringView stringview) {
 		clear();
 		insert(0, stringview);
@@ -28,6 +30,7 @@ private:
 	qsizetype m_gapBegin = 0;
 	qsizetype m_gapEnd = 0;
 	std::vector<qsizetype> m_lines;
+	qsizetype m_version = 0;
 
 	qsizetype logicalToPhysical(qsizetype pos) const ;
 	void ensureGap(qsizetype at, qsizetype minExtra);

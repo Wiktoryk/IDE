@@ -25,6 +25,7 @@ void GapBuffer::clear() {
 	m_gapEnd = qsizetype(m_buf.size());
 	m_lines.clear();
 	m_lines.push_back(0);
+	m_version = 0;
 }
 
 qsizetype GapBuffer::size() const {
@@ -85,6 +86,7 @@ void GapBuffer::insert(qsizetype pos, QStringView stringview) {
     m_gapBegin += stringview.size();
 
     updateLinesForInsert(pos, stringview);
+	++m_version;
 }
 
 void GapBuffer::collectRemoved(qsizetype pos, qsizetype len, QString& out) const {
@@ -113,6 +115,7 @@ void GapBuffer::erase(qsizetype pos, qsizetype len) {
     m_gapEnd += len;
 
     updateLinesForErase(pos, len, removed);
+	++m_version;
 }
 
 QString GapBuffer::readRange(qsizetype physStart, qsizetype physEnd) const {
@@ -227,4 +230,10 @@ qsizetype GapBuffer::positionFromLineCol(qsizetype line, qsizetype col) const {
     const qsizetype start = lineStart(line);
     const qsizetype end   = (line + 1 < lineCount()) ? lineStart(line + 1) : size();
     return std::clamp<qsizetype>(start + col, start, end);
+}
+
+TextSnapshot GapBuffer::snapshot() const {
+	QString txt = toString();
+	std::vector<qsizetype> starts = m_lines;
+	return TextSnapshot(std::move(txt), std::move(starts), m_version);
 }
