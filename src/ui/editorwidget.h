@@ -15,6 +15,7 @@ private:
 	void applyInsertAt(qsizetype pos, const QString& text);
 	void applyEraseAt(qsizetype pos, qsizetype len);
 	void syncFromModel(qsizetype newCursorPos);
+    void syncModelFromWidget();
 
     QString m_path;
     bool m_dirty = false;
@@ -23,7 +24,7 @@ private:
     bool m_reloading = false;
     QTimer* m_watchReset = nullptr;
 	GapBuffer m_model;
-	UndoStack m_undo;
+	//UndoStack m_undo;  TODO::napraw
 
 public:
     explicit EditorWidget(QWidget* parent=nullptr);

@@ -17,6 +17,8 @@ EditorWidget::EditorWidget(QWidget* parent) : QPlainTextEdit(parent) {
     m_watchReset->setSingleShot(true);
     m_watchReset->setInterval(500);
     connect(m_watchReset, &QTimer::timeout, this, &EditorWidget::delayedWatchReset);
+
+    connect(this, &QPlainTextEdit::textChanged, this, &EditorWidget::syncModelFromWidget);
 }
 
 void EditorWidget::updateWindowTitle() {
@@ -41,11 +43,12 @@ bool EditorWidget::loadFromFile(const QString& path, QString* error) {
     in.setEncoding(QStringConverter::Utf8);
     setPlainText(in.readAll());
 	m_model.setText(toPlainText());
-	m_undo.clear();
+	//m_undo.clear();
     document()->setModified(false);
     m_dirty = false;
     setFilePath(path);
 	startWatching(path);
+    syncModelFromWidget();
     return true;
 }
 
@@ -75,11 +78,12 @@ bool EditorWidget::saveToFile(const QString& path, QString* error) {
     m_dirty = false;
     setFilePath(path);
 	startWatching(path);
+    syncModelFromWidget();
     return true;
 }
 
 void EditorWidget::keyPressEvent(QKeyEvent* e) {
-	if (e->matches(QKeySequence::Undo)) {
+	/*if (e->matches(QKeySequence::Undo)) {
 		doUndo();
 		return;
 	}
@@ -122,8 +126,9 @@ void EditorWidget::keyPressEvent(QKeyEvent* e) {
                 applyEraseAt(pos, 1);
         }
         return;
-    }
+    }*/
 	QPlainTextEdit::keyPressEvent(e);
+    syncModelFromWidget();
 }
 
 void EditorWidget::onCursorChanged() {
@@ -218,7 +223,7 @@ void EditorWidget::applyInsertAt(qsizetype pos, const QString& text) {
 	if (text.isEmpty()) return;
 	m_model.insert(pos, text);
 	Edit edit{Edit::Insert, pos, text, pos + text.size()};
-	m_undo.push(edit);
+	//m_undo.push(edit);
 	syncFromModel(edit.cursorAfter);
 	document()->setModified(true);
 }
@@ -228,19 +233,27 @@ void EditorWidget::applyEraseAt(qsizetype pos, qsizetype len) {
 	const QString removed = m_model.slice(pos, len);
 	m_model.erase(pos, len);
 	Edit edit{Edit::Erase, pos, removed, pos};
-	m_undo.push(edit);
+	//m_undo.push(edit);
 	syncFromModel(edit.cursorAfter);
 	document()->setModified(true);
 }
 
 void EditorWidget::doUndo() {
-	if (!m_undo.canUndo()) return;
+	/*if (!m_undo.canUndo()) return;
 	qsizetype caret = m_undo.undo(m_model);
-	syncFromModel(caret);
+	syncFromModel(caret);*/
+	QPlainTextEdit::undo();
+    syncModelFromWidget();
 }
 
 void EditorWidget::doRedo() {
-	if (!m_undo.canRedo()) return;
+	/*if (!m_undo.canRedo()) return;
 	qsizetype caret = m_undo.redo(m_model);
-	syncFromModel(caret);
+	syncFromModel(caret);*/
+	QPlainTextEdit::redo();
+    syncModelFromWidget();
+}
+
+void EditorWidget::syncModelFromWidget() {
+    m_model.setText(toPlainText());
 }
