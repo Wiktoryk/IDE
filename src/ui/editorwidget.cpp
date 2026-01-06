@@ -257,3 +257,33 @@ void EditorWidget::doRedo() {
 void EditorWidget::syncModelFromWidget() {
     m_model.setText(toPlainText());
 }
+
+void EditorWidget::setSearchResults(const QVector<SearchResult>& results) {
+	m_results = results;
+	QList<QTextEdit::ExtraSelection> selections;
+	QTextCharFormat fmt;
+	fmt.setBackground(QColor(255, 230, 150));
+
+	for (const auto& result : results) {
+		QTextCursor cursor(document());
+		cursor.setPosition(result.start);
+		cursor.setPosition(result.start + result.length, QTextCursor::KeepAnchor);
+		QTextEdit::ExtraSelection selection;
+		selection.cursor = cursor;
+		selection.format = fmt;
+		selections.append(selection);
+	}
+	setExtraSelections(selections);
+}
+
+void EditorWidget::selectSearchResult(int index) {
+	if (index < 0 || index >= m_results.size()) {
+		return;
+	}
+	const auto& result = m_results[index];
+	QTextCursor cursor(document());
+	cursor.setPosition(result.start);
+	cursor.setPosition(result.start + result.length, QTextCursor::KeepAnchor);
+	setTextCursor(cursor);
+	centerCursor();
+}

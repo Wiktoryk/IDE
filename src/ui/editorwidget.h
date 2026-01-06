@@ -25,6 +25,7 @@ private:
     QTimer* m_watchReset = nullptr;
 	GapBuffer m_model;
 	//UndoStack m_undo;  TODO::napraw
+	QVector<SearchResult> m_results;
 
 public:
     explicit EditorWidget(QWidget* parent=nullptr);
@@ -35,6 +36,8 @@ public:
     void setFilePath(const QString& p) { m_path = p; updateWindowTitle(); }
 	void doUndo();
 	void doRedo();
+	void setSearchResults(const QVector<SearchResults>& results);
+	void selectSearchResults(int index);
 
 signals:
     void cursorPosChanged(int line, int col);
