@@ -1,3 +1,4 @@
+#pragma once
 struct SearchResult {
     int start;
     int length;

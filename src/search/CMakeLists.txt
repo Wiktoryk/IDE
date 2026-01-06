@@ -1,4 +1,4 @@
-add_library(ide-search STATIC ripgrep_runner.cpp)
+add_library(ide-search STATIC ripgrep_runner.cpp DocumentSearcher.h)
 
 target_include_directories(ide-search PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries(ide-search PUBLIC Qt6::Core)

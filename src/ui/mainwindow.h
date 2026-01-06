@@ -2,6 +2,8 @@
 #include <QMainWindow>
 #include <QDockWidget>
 #include <QPlainTextEdit>
+#include "searchbar.h"
+#include "../search/DocumentSearcher.h"
 class EditorWidget;
 
 class MainWindow : public QMainWindow {
@@ -20,6 +22,11 @@ private:
 
 	QDockWidget* m_buildDock = nullptr;
     QPlainTextEdit*   m_buildOutput = nullptr;
+
+	DocumentSearcher m_searcher;
+	QVector<SearchResult> m_results;
+	int m_currentResult = -1;
+	SearchBar* m_searchBar = nullptr;
 
 public:
     explicit MainWindow(QWidget* parent = nullptr);

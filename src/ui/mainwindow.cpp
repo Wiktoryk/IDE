@@ -10,6 +10,7 @@
 #include <QMenu>
 #include <QProcess>
 #include <QToolBar>
+#include <QVBoxLayout>
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     m_editor = new EditorWidget(this);
@@ -42,6 +43,38 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 	m_buildOutput->setReadOnly(true);
 	m_buildDock->setWidget(m_buildOutput);
 	addDockWidget(Qt::BottomDockWidgetArea, m_buildDock);
+
+	m_searchBar = new SearchBar(this);
+	m_searchBar->hide();
+	layout()->addWidget(m_searchBar);
+
+	auto* findAction = new QAction("Find", this);
+	findAction->setShortcut(QKeySequence::Find);
+	connect(findAction, &QAction::triggered, [this] {
+		m_searchBar->show();
+		m_searchBar->setFocus();
+	});
+	addAction(findAction);
+
+	connect(m_searchBar, &SearchBar::searchChanged, this, [this](const QString& text) {
+		m_searcher.setText(m_editor->toPlainText());
+		m_results = m_searcher.findAll(text, Qt::CaseInsensitive);
+		m_editor->setSearchResults(m_results);
+
+		m_currentResult = m_results.isEmpty() ? -1 : 0;
+		m_editor->selectSearchResult(m_currentResult);
+	});
+
+	connect(m_searchBar, &SearchBar::next, this, [this] {
+		if (m_results.isEmpty()) return;
+		m_currentResult = (m_currentResult + 1) % m_results.size();
+		m_editor->selectSearchResult(m_currentResult);
+	});
+	connect(m_searchBar, &SearchBar::previous, this, [this] {
+		if (m_results.isEmpty()) return;
+		m_currentResult = (m_currentResult - 1 + m_results.size()) % m_results.size();
+		m_editor->selectSearchResult(m_currentResult);
+	});
 
     statusBar()->showMessage("Ready");
     resize(1000, 700);

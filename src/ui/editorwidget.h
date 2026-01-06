@@ -4,6 +4,7 @@
 #include <QTimer>
 #include "../buffer/gapBuffer.h"
 #include "../buffer/undoStack.h"
+#include "../search/DocumentSearcher.h"
 
 class EditorWidget : public QPlainTextEdit {
     Q_OBJECT
@@ -36,8 +37,8 @@ public:
     void setFilePath(const QString& p) { m_path = p; updateWindowTitle(); }
 	void doUndo();
 	void doRedo();
-	void setSearchResults(const QVector<SearchResults>& results);
-	void selectSearchResults(int index);
+	void setSearchResults(const QVector<SearchResult>& results);
+	void selectSearchResult(int index);
 
 signals:
     void cursorPosChanged(int line, int col);
