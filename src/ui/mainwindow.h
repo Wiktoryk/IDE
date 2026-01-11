@@ -2,9 +2,9 @@
 #include <QMainWindow>
 #include <QDockWidget>
 #include <QPlainTextEdit>
-#include "searchbar.h"
 #include "../search/DocumentSearcher.h"
 class EditorWidget;
+class SearchBar;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT

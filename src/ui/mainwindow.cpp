@@ -11,6 +11,7 @@
 #include <QProcess>
 #include <QToolBar>
 #include <QVBoxLayout>
+#include "searchbar.h"
 
 MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
     m_editor = new EditorWidget(this);

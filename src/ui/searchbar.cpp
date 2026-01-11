@@ -1,20 +1,36 @@
 #include "searchbar.h"
-#include <QHBoxLayout>
+#include <QLineEdit>
 #include <QPushButton>
-#include <QLabel>
+#include <QHBoxLayout>
+#include <QKeyEvent>
 
 SearchBar::SearchBar(QWidget* parent) : QWidget(parent) {
-	auto* layout = new QHBoxLayout(this);
-	layout->setContentsMargins(4,4,4,4);
+	setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
+	setAttribute(Qt::WA_DeleteOnClose, false);
+
 	m_input = new QLineEdit(this);
-	auto* nextButton = new QPushButton("Next", this);
-	auto* prevButton = new QPushButton("Prev", this);
-	layout->addWidget(new QLabel("Find:"));
+	m_next = new QPushButton("v", this);
+	m_prev = new QPushButton("^", this);
+	m_close = new QPushButton("X", this);
+
+	auto* layout = new QHBoxLayout(this);
+	layout->setContentsMargins(8,8,8,8);
 	layout->addWidget(m_input);
-	layout->addWidget(prevButton);
-	layout->addWidget(nextButton);
+	layout->addWidget(m_prev);
+	layout->addWidget(m_next);
+	layout->addWidget(m_close);
 
 	connect(m_input, &QLineEdit::textChanged, this, &SearchBar::searchChanged);
-	connect(nextButton, &QPushButton::clicked, this, &SearchBar::next);
-	connect(prevButton, &QPushButton::clicked, this, &SearchBar::previous);
+	connect(m_next, &QPushButton::clicked, this, &SearchBar::next);
+	connect(m_prev, &QPushButton::clicked, this, &SearchBar::previous);
+	connect(m_close, &QPushButton::clicked, this, &QWidget::hide);
+}
+
+void SearchBar::keyPressEvent(QKeyEvent* event) {
+	if (event->key() == Qt::Key_Escape) {
+		hide();
+		event->accept();
+		return;
+	}
+	QWidget::keyPressEvent(event);
 }
