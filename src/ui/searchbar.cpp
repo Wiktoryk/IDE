@@ -5,7 +5,7 @@
 #include <QKeyEvent>
 
 SearchBar::SearchBar(QWidget* parent) : QWidget(parent) {
-	setWindowFlags(Qt::Tool | Qt::FramelessWindowHint);
+	setWindowFlags(Qt::Tool);
 	setAttribute(Qt::WA_DeleteOnClose, false);
 
 	m_input = new QLineEdit(this);
@@ -24,6 +24,7 @@ SearchBar::SearchBar(QWidget* parent) : QWidget(parent) {
 	connect(m_next, &QPushButton::clicked, this, &SearchBar::next);
 	connect(m_prev, &QPushButton::clicked, this, &SearchBar::previous);
 	connect(m_close, &QPushButton::clicked, this, &QWidget::hide);
+	connect(m_input, &QLineEdit::returnPressed, this, &SearchBar::next);
 }
 
 void SearchBar::keyPressEvent(QKeyEvent* event) {
