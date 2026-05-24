@@ -15,6 +15,7 @@ signals:
 	void searchChanged(const QString& text);
 	void next();
 	void previous();
+	void searchClosed();
 protected:
 	void keyPressEvent(QKeyEvent* event) override;
 };

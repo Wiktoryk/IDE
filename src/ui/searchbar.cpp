@@ -23,13 +23,17 @@ SearchBar::SearchBar(QWidget* parent) : QWidget(parent) {
 	connect(m_input, &QLineEdit::textChanged, this, &SearchBar::searchChanged);
 	connect(m_next, &QPushButton::clicked, this, &SearchBar::next);
 	connect(m_prev, &QPushButton::clicked, this, &SearchBar::previous);
-	connect(m_close, &QPushButton::clicked, this, &QWidget::hide);
+	connect(m_close, &QPushButton::clicked, this,[this]() {
+		hide();
+		emit searchClosed();
+	});
 	connect(m_input, &QLineEdit::returnPressed, this, &SearchBar::next);
 }
 
 void SearchBar::keyPressEvent(QKeyEvent* event) {
 	if (event->key() == Qt::Key_Escape) {
 		hide();
+		emit searchClosed();
 		event->accept();
 		return;
 	}
