@@ -287,3 +287,8 @@ void EditorWidget::selectSearchResult(int index) {
 	setTextCursor(cursor);
 	centerCursor();
 }
+
+void EditorWidget::clearSearchHighlights() {
+	QList<QTextEdit::ExtraSelection> selections;
+	setExtraSelections(selections);
+}

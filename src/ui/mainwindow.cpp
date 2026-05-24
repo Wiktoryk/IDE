@@ -76,6 +76,7 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 		m_currentResult = (m_currentResult - 1 + m_results.size()) % m_results.size();
 		m_editor->selectSearchResult(m_currentResult);
 	});
+	connect(m_searchBar, &SearchBar::searchClosed, m_editor, &EditorWidget::clearSearchHighlights); 
 
     statusBar()->showMessage("Ready");
     resize(1000, 700);

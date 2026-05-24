@@ -32,6 +32,7 @@ SearchBar::SearchBar(QWidget* parent) : QWidget(parent) {
 
 void SearchBar::keyPressEvent(QKeyEvent* event) {
 	if (event->key() == Qt::Key_Escape) {
+		m_input->clear();
 		hide();
 		emit searchClosed();
 		event->accept();

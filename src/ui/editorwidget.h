@@ -39,6 +39,7 @@ public:
 	void doRedo();
 	void setSearchResults(const QVector<SearchResult>& results);
 	void selectSearchResult(int index);
+	void clearSearchHighlights();
 
 signals:
     void cursorPosChanged(int line, int col);
