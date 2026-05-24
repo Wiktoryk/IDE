@@ -40,3 +40,10 @@ void SearchBar::keyPressEvent(QKeyEvent* event) {
 	}
 	QWidget::keyPressEvent(event);
 }
+
+void SearchBar::setSearchText(const QString& text) {
+	m_input->setText(text);
+	m_input->selectAll();
+	m_input->setFocus();
+	emit searchChanged(text);
+}

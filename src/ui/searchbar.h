@@ -11,6 +11,7 @@ class SearchBar : public QWidget {
 	QPushButton* m_close;
 public:
 	explicit SearchBar(QWidget* parent = nullptr);
+	void setSearchText(const QString& text);
 signals:
 	void searchChanged(const QString& text);
 	void next();

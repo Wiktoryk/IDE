@@ -52,8 +52,13 @@ MainWindow::MainWindow(QWidget* parent) : QMainWindow(parent) {
 	auto* findAction = new QAction("Find", this);
 	findAction->setShortcut(QKeySequence::Find);
 	connect(findAction, &QAction::triggered, [this] {
+		auto cursor = m_editor->textCursor();
+		QString selectedText = cursor.selectedText();
 		m_searchBar->show();
 		m_searchBar->setFocus();
+		if (!selectedText.isEmpty()) {
+			m_searchBar->setSearchText(selectedText);
+		}
 	});
 	addAction(findAction);
 
